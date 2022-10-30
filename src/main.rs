@@ -1,22 +1,27 @@
 use clap::Parser;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Args {
-   /// Name of the person to greet
-   #[arg(short, long)]
-   name: String,
+mod deck;
+mod arguments;
 
-   /// Number of times to greet
-   #[arg(short, long, default_value_t = 1)]
-   count: u8,
-}
+use arguments::Args;
+
 
 fn main() {
    let args = Args::parse();
 
    for _ in 0..args.count {
        println!("Hello {}!", args.name)
+
    }
+
+   let mut my_deck = deck::Deck::new();
+   
+   let my_card = deck::Card {
+       name: "My Card".to_string(),
+       card_type: "My Type".to_string(),
+   };
+
+   my_deck.add_card(my_card);
+   my_deck.shuffle();
+   println!("{my_deck:#?}");
 }
