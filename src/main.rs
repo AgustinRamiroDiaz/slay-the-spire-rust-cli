@@ -1,27 +1,32 @@
 use clap::Parser;
 
-mod deck;
 mod arguments;
+mod deck;
+mod game_manager;
+mod turn_manager;
 
 use arguments::Args;
 
-
 fn main() {
-   let args = Args::parse();
+    let args = Args::parse();
 
-   for _ in 0..args.count {
-       println!("Hello {}!", args.name)
+    for _ in 0..args.count {
+        println!("Hello {}!", args.name)
+    }
 
-   }
+    println!("#################################");
+    println!("#################################");
+    println!("#################################");
+    println!("#################################");
+    println!("############## StS ##############");
+    let mut game_manager = game_manager::GameManager::new();
 
-   let mut my_deck = deck::Deck::new();
-   
-   let my_card = deck::Card {
-       name: "My Card".to_string(),
-       card_type: "My Type".to_string(),
-   };
+    let my_card = deck::Card {
+        name: "My Card".to_string(),
+        card_type: "My Type".to_string(),
+    };
 
-   my_deck.add_card(my_card);
-   my_deck.shuffle();
-   println!("{my_deck:#?}");
+    game_manager.deck.add_card(my_card);
+    game_manager.deck.shuffle();
+    println!("{:#?}", game_manager.deck);
 }
