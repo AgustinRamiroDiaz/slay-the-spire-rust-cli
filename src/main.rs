@@ -5,14 +5,8 @@ mod deck;
 mod game_manager;
 mod turn_manager;
 
-use arguments::Args;
-
 fn main() {
-    let args = Args::parse();
-
-    for _ in 0..args.count {
-        println!("Hello {}!", args.name)
-    }
+    let args = arguments::Main::parse();
 
     println!("#################################");
     println!("#################################");
@@ -28,5 +22,9 @@ fn main() {
 
     game_manager.deck.add_card(my_card);
     game_manager.deck.shuffle();
-    println!("{:#?}", game_manager.deck);
+
+    match args.command {
+        arguments::Actions::Attack => println!("you missed"),
+        arguments::Actions::Status => println!("{:#?}", game_manager.deck),
+    }
 }
