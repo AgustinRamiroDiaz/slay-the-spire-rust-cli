@@ -13,4 +13,11 @@ impl TurnManager {
             current: Turn::Player,
         }
     }
+
+    pub(crate) fn switch(mut self) {
+        self.current = match self.current {
+            Turn::Player => Turn::Enemy,
+            Turn::Enemy => Turn::Player,
+        };
+    }
 }
