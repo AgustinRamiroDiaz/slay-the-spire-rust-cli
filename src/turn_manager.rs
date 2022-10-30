@@ -1,10 +1,10 @@
-enum Turn {
+pub(crate) enum Turn {
     Player,
     Enemy,
 }
 
 pub(crate) struct TurnManager {
-    current: Turn,
+    pub(crate) current: Turn,
 }
 
 impl TurnManager {

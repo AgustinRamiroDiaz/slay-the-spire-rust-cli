@@ -24,7 +24,7 @@ fn main() {
     game_manager.deck.shuffle();
 
     match args.command {
-        arguments::Actions::Attack => println!("you missed"),
+        arguments::Actions::Attack => game_manager.attack().unwrap(),
         arguments::Actions::Status => println!("{:#?}", game_manager.deck),
     }
 }
