@@ -8,7 +8,7 @@ mod loader;
 mod turn_manager;
 
 fn main() {
-    //let args = arguments::Main::parse();
+    let args = arguments::Main::parse();
 
     println!("#################################");
     println!("#################################");
@@ -28,10 +28,10 @@ fn main() {
     game_manager.deck.add_card(my_card);
     game_manager.deck.shuffle();
 
-    // match args.command {
-    //     arguments::Actions::Attack => game_manager.attack().unwrap(),
-    //     arguments::Actions::Status => println!("{:#?}", game_manager.deck),
-    // }
+    match args.command {
+        arguments::Actions::Attack => game_manager.attack().unwrap(),
+        arguments::Actions::Status => println!("{:#?}", game_manager.deck),
+    }
 
     loader.save(&game_manager.state)
 }
