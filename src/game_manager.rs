@@ -17,7 +17,7 @@ impl<'a> GameManager<'a> {
                 game_state::Turn::Player => {
                     attack_enemy(1, enemy);
                     switch_turn(turn);
-                    play_enemy(enemy);
+                    play_enemy(enemy, &mut self.state.player);
                     switch_turn(turn);
                     Ok(())
                 }
@@ -52,6 +52,18 @@ fn switch_turn(turn: &mut game_state::Turn) {
     };
 }
 
-fn play_enemy(enemy: &mut game_state::Enemy) {
+fn play_enemy(enemy: &mut game_state::Enemy, player: &mut game_state::Player) {
     println!("The heart beats faster.");
+    let damage = 1;
+    if player.health > damage {
+        player.health -= damage;
+        println!(
+            "{name} has {health} health left",
+            name = player.name,
+            health = player.health
+        );
+    } else {
+        println!("{} has died", player.name);
+        player.health = 0;
+    }
 }

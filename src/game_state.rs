@@ -5,10 +5,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct GameState {
     pub(crate) situation: Situation,
+    pub(crate) player: Player,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Enemy {
+    pub(crate) health: usize,
+    pub(crate) name: String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct Player {
     pub(crate) health: usize,
     pub(crate) name: String,
 }
@@ -27,6 +34,10 @@ pub(crate) enum Situation {
 impl GameState {
     pub(crate) fn new() -> Self {
         Self {
+            player: Player {
+                health: 20,
+                name: "di peq".to_string(),
+            },
             situation: Situation::Fighting {
                 enemy: Enemy {
                     health: 3,
