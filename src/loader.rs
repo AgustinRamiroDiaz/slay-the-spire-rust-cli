@@ -35,10 +35,11 @@ impl Loader {
     }
 
     pub(crate) fn load(&self) -> game_state::GameState {
-        let file_name = Path::new(&self.folder).join(&self.file);
+        let folder = Path::new(&self.folder);
+        let file_name = folder.join(&self.file);
 
         if !file_name.exists() {
-            fs::create_dir_all(&file_name).unwrap();
+            fs::create_dir_all(Path::new(&self.folder)).unwrap();
             File::create(&file_name).unwrap();
         }
 
@@ -51,10 +52,11 @@ impl Loader {
     }
 
     pub(crate) fn save(self, game_state: &game_state::GameState) {
-        let file_name = Path::new(&self.folder).join(self.file);
+        let folder = Path::new(&self.folder);
+        let file_name = folder.join(&self.file);
 
         if !file_name.exists() {
-            fs::create_dir_all(&file_name).unwrap();
+            fs::create_dir_all(folder).unwrap();
             File::create(&file_name).unwrap();
         }
 
