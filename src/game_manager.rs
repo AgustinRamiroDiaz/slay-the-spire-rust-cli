@@ -1,3 +1,4 @@
+use crate::deck;
 use crate::game_state::{self, Enemy};
 
 #[derive(Debug)]
@@ -19,31 +20,107 @@ impl<'a> GameManager<'a> {
         }
     }
 
-    pub(crate) fn attack(&mut self) -> Result<(), String> {
+    pub(crate) fn enter_fight(&mut self) -> Result<(), String> {
+        match self.state.situation {
+            game_state::Situation::Chill => {
+                self.state.situation = game_state::Situation::Fight(game_state::Fight {
+                    armor: 0,
+                    enemy: Enemy {
+                        health: 3,
+                        name: "The heart".to_string(),
+                    },
+                    turn: game_state::Turn::Player,
+                    fight_cards: deck::new(self.state.deck.clone()),
+                });
+                Ok(())
+            }
+            _ => Err("Not Chilling".to_string()),
+        }
+    }
+
+    pub(crate) fn play(&mut self, card_index: usize) -> Result<(), String> {
         match &mut self.state.situation {
-            game_state::Situation::Fighting { enemy, turn } => match turn {
+            game_state::Situation::Fight(fight) => match fight.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
-                    attack_enemy(1, enemy, &mut self.event_store);
-                    switch_turn(turn);
-                    play_enemy(enemy, &mut self.state.player);
-                    switch_turn(turn);
+                    match fight.fight_cards.hand.get(card_index) {
+                        Some(card) => {
+                            match &card.card_content {
+                                game_state::CardContent::Attack(damage) => {
+                                    attack_enemy(*damage, &mut fight.enemy, &mut self.event_store)
+                                }
+                                game_state::CardContent::Defend(armor) => {
+                                    fight.armor += armor;
+                                    println!(
+                                        "You've gained {} armor, you now have {}",
+                                        armor, fight.armor
+                                    );
+                                }
+                            }
+
+                            Ok(())
+                        }
+                        None => Err("No card at that index".to_string()),
+                    }?;
                     Ok(())
                 }
             },
             game_state::Situation::Won => Err("You won".to_string()),
+            game_state::Situation::Chill => Err("You are chilling".to_string()),
         }?;
 
         for event in &self.event_store {
             match event {
                 Event::EnemyDied => {
-                    println!("Enemy died");
                     println!("You won");
                     self.state.situation = game_state::Situation::Won;
                 }
             }
         }
         Ok(())
+    }
+
+    pub(crate) fn end_turn(&mut self) -> Result<(), String> {
+        match &mut self.state.situation {
+            game_state::Situation::Fight(fight) => match fight.turn {
+                game_state::Turn::Enemy => Err("Not your turn".to_string()),
+                game_state::Turn::Player => {
+                    switch_turn(&mut fight.turn);
+                    play_enemy(&mut fight.enemy, &mut self.state.player);
+                    switch_turn(&mut fight.turn);
+                    Ok(())
+                }
+            },
+            _ => Err("Not in a fight".to_string()),
+        }
+    }
+
+    pub(crate) fn peek_hand(&self) -> Result<Vec<game_state::Card>, String> {
+        match &self.state.situation {
+            game_state::Situation::Fight(fight) => Ok(fight.fight_cards.hand.clone()),
+            _ => Err("Not in a fight".to_string()),
+        }
+    }
+
+    pub(crate) fn peek_draw_pile(&self) -> Result<&Vec<game_state::Card>, String> {
+        match &self.state.situation {
+            game_state::Situation::Fight(fight) => Ok(&fight.fight_cards.draw_pile),
+            _ => Err("Not in a fight".to_string()),
+        }
+    }
+
+    pub(crate) fn peek_discard_pile(&self) -> Result<&Vec<game_state::Card>, String> {
+        match &self.state.situation {
+            game_state::Situation::Fight(fight) => Ok(&fight.fight_cards.discard_pile),
+            _ => Err("Not in a fight".to_string()),
+        }
+    }
+
+    pub(crate) fn peek_enemy(&self) -> Result<&Enemy, String> {
+        match &self.state.situation {
+            game_state::Situation::Fight(fight) => Ok(&fight.enemy),
+            _ => Err("Not in a fight".to_string()),
+        }
     }
 }
 

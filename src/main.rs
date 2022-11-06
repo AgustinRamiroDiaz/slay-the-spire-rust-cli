@@ -19,9 +19,20 @@ fn main() -> Result<(), String> {
     println!("#################################");
     println!("#################################");
     println!("############## StS ##############");
+
     match args.command {
-        arguments::Actions::Attack => game_manager.attack().map_err(|e| e)?,
-        arguments::Actions::Status => println!("{:#?}", game_manager.state),
+        arguments::Actions::Play(card_index) => game_manager.play(card_index.index)?,
+        arguments::Actions::Status(game_object) => match game_object {
+            arguments::GameObject::Player => println!("{:#?}", game_manager.state.player),
+            arguments::GameObject::Enemy => println!("{:#?}", game_manager.peek_enemy()),
+            arguments::GameObject::DrawPile => println!("{:#?}", game_manager.peek_draw_pile()?),
+            arguments::GameObject::Hand => println!("{:#?}", game_manager.peek_hand()),
+            arguments::GameObject::DiscardPile => {
+                println!("{:?}", game_manager.peek_discard_pile())
+            }
+        },
+        arguments::Actions::EnterFight => game_manager.enter_fight()?,
+        arguments::Actions::EndTurn => game_manager.end_turn()?,
     }
 
     println!("#################################");

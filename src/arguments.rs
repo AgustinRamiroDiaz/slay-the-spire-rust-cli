@@ -1,9 +1,26 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum Actions {
-    Attack,
-    Status,
+    Play(Index),
+    #[clap(subcommand)]
+    Status(GameObject),
+    EnterFight,
+    EndTurn,
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum GameObject {
+    Player,
+    Enemy,
+    DrawPile,
+    Hand,
+    DiscardPile,
+}
+
+#[derive(Args, Debug)]
+pub(crate) struct Index {
+    pub(crate) index: usize,
 }
 
 /// Simple program to greet a person

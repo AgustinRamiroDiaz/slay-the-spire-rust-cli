@@ -4,8 +4,8 @@ use std::{fs::File, path::Path};
 
 use std::io::prelude::*;
 
-const default_file: &str = "save.yaml";
-const default_folder: &str = ".slay-the-spire";
+const DEFAULT_FILE: &str = "save.yaml";
+const DEFAULT_FOLDER: &str = ".slay-the-spire";
 
 pub(crate) struct Loader {
     folder: String,
@@ -15,8 +15,8 @@ pub(crate) struct Loader {
 impl Loader {
     pub(crate) fn new() -> Self {
         Self {
-            folder: default_folder.to_string(),
-            file: default_file.to_string(),
+            folder: DEFAULT_FOLDER.to_string(),
+            file: DEFAULT_FILE.to_string(),
         }
     }
 

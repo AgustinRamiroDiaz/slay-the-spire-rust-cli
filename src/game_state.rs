@@ -1,13 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// All the properties will need to derive this.
-// DO NOT derive this in other structs just to make it work.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct GameState {
-    pub(crate) situation: Situation,
-    pub(crate) player: Player,
-}
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Enemy {
     pub(crate) health: usize,
@@ -27,25 +19,67 @@ pub(crate) enum Turn {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct FightCards {
+    pub(crate) draw_pile: Vec<Card>,
+    pub(crate) hand: Vec<Card>,
+    pub(crate) discard_pile: Vec<Card>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct Fight {
+    pub(crate) armor: usize,
+    pub(crate) enemy: Enemy,
+    pub(crate) turn: Turn,
+    pub(crate) fight_cards: FightCards,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) enum Situation {
-    Fighting { enemy: Enemy, turn: Turn },
+    Fight(Fight),
     Won,
+    Chill,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub(crate) enum CardContent {
+    Attack(usize),
+    Defend(usize),
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub(crate) struct Card {
+    pub(crate) name: String,
+    pub(crate) card_content: CardContent,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub(crate) struct GameState {
+    pub(crate) situation: Situation,
+    pub(crate) player: Player,
+    pub(crate) deck: Vec<Card>,
 }
 
 impl GameState {
     pub(crate) fn new() -> Self {
+        let mut deck = Vec::new();
+        for _ in 0..5 {
+            deck.push(Card {
+                name: "Strike".to_string(),
+                card_content: CardContent::Attack(6),
+            });
+            deck.push(Card {
+                name: "Defend".to_string(),
+                card_content: CardContent::Defend(5),
+            });
+        }
+
         Self {
             player: Player {
                 health: 20,
                 name: "di peq".to_string(),
             },
-            situation: Situation::Fighting {
-                enemy: Enemy {
-                    health: 3,
-                    name: "The heart".to_string(),
-                },
-                turn: Turn::Player,
-            },
+            deck,
+            situation: Situation::Chill,
         }
     }
 }
