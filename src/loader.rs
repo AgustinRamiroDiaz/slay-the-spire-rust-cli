@@ -60,7 +60,11 @@ impl Loader {
             File::create(&file_name).unwrap();
         }
 
-        let file = File::options().write(true).open(&file_name).unwrap();
+        let file = File::options()
+            .write(true)
+            .truncate(true)
+            .open(&file_name)
+            .unwrap();
         serde_yaml::to_writer(file, game_state).unwrap();
     }
 }

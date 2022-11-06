@@ -1,13 +1,22 @@
 use crate::game_state::{self, Enemy};
 
 #[derive(Debug)]
+enum Event {
+    EnemyDied,
+}
+
+#[derive(Debug)]
 pub(crate) struct GameManager<'a> {
     pub(crate) state: &'a mut game_state::GameState,
+    event_store: Vec<Event>,
 }
 
 impl<'a> GameManager<'a> {
     pub(crate) fn new(game_state: &'a mut game_state::GameState) -> Self {
-        GameManager { state: game_state }
+        GameManager {
+            state: game_state,
+            event_store: Vec::new(),
+        }
     }
 
     pub(crate) fn attack(&mut self) -> Result<(), String> {
@@ -15,7 +24,7 @@ impl<'a> GameManager<'a> {
             game_state::Situation::Fighting { enemy, turn } => match turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
-
+                    attack_enemy(1, enemy, &mut self.event_store);
                     switch_turn(turn);
                     play_enemy(enemy, &mut self.state.player);
                     switch_turn(turn);
@@ -23,16 +32,31 @@ impl<'a> GameManager<'a> {
                 }
             },
             game_state::Situation::Won => Err("You won".to_string()),
+        }?;
+
+        for event in &self.event_store {
+            match event {
+                Event::EnemyDied => {
+                    println!("Enemy died");
+                    println!("You won");
+                    self.state.situation = game_state::Situation::Won;
+                }
+            }
         }
+        Ok(())
     }
 }
 
-fn attack_enemy(damage: usize, enemy: &mut game_state::Enemy) {
+fn attack_enemy(damage: usize, enemy: &mut game_state::Enemy, event_store: &mut Vec<Event>) {
     println!("You attack the enemy for {damage} damage");
-    enemy_recieve_damage(damage, enemy);
+    enemy_recieve_damage(damage, enemy, event_store);
 }
 
-fn enemy_recieve_damage(damage: usize, enemy: &mut game_state::Enemy) {
+fn enemy_recieve_damage(
+    damage: usize,
+    enemy: &mut game_state::Enemy,
+    event_store: &mut Vec<Event>,
+) {
     if enemy.health > damage {
         enemy.health -= damage;
         println!(
@@ -43,6 +67,7 @@ fn enemy_recieve_damage(damage: usize, enemy: &mut game_state::Enemy) {
     } else {
         println!("{} has died", enemy.name);
         enemy.health = 0;
+        event_store.push(Event::EnemyDied);
     }
 }
 
