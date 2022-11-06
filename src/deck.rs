@@ -22,7 +22,12 @@ pub(crate) fn new(deck: Vec<Card>) -> FightCards {
     deck
 }
 
-fn draw_n(n: usize, draw: &mut Vec<Card>, hand: &mut Vec<Card>, discard: &mut Vec<Card>) {
+pub(crate) fn draw_n(
+    n: usize,
+    draw: &mut Vec<Card>,
+    hand: &mut Vec<Card>,
+    discard: &mut Vec<Card>,
+) {
     for _ in 0..n {
         draw_card(draw, hand, discard);
     }
@@ -47,4 +52,8 @@ fn draw_card(draw: &mut Vec<Card>, hand: &mut Vec<Card>, discard: &mut Vec<Card>
 
 fn shuffle<T>(vec: &mut Vec<T>) {
     vec.shuffle(&mut thread_rng());
+}
+
+pub(crate) fn discard_hand(hand: &mut Vec<Card>, discard: &mut Vec<Card>) {
+    discard.append(hand);
 }

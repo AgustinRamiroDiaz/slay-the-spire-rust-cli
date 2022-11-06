@@ -57,7 +57,10 @@ impl<'a> GameManager<'a> {
                                     );
                                 }
                             }
-
+                            fight
+                                .fight_cards
+                                .discard_pile
+                                .push(fight.fight_cards.hand.remove(card_index));
                             Ok(())
                         }
                         None => Err("No card at that index".to_string()),
@@ -85,9 +88,19 @@ impl<'a> GameManager<'a> {
             game_state::Situation::Fight(fight) => match fight.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
+                    deck::discard_hand(
+                        &mut fight.fight_cards.hand,
+                        &mut fight.fight_cards.discard_pile,
+                    );
                     switch_turn(&mut fight.turn);
                     play_enemy(&mut fight.enemy, &mut self.state.player);
                     switch_turn(&mut fight.turn);
+                    deck::draw_n(
+                        5,
+                        &mut fight.fight_cards.draw_pile,
+                        &mut fight.fight_cards.hand,
+                        &mut fight.fight_cards.discard_pile,
+                    );
                     Ok(())
                 }
             },
