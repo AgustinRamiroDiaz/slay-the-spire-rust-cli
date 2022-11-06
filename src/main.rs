@@ -9,7 +9,14 @@ mod loader;
 fn main() -> Result<(), String> {
     let args = arguments::Main::parse();
 
-    let loader = loader::Loader::new();
+    let mut loader = loader::Loader::new();
+    match &args.command {
+        arguments::Actions::Save(save_command) => match save_command {
+            arguments::Save::Delete => loader.delete(),
+            arguments::Save::Load(save) => loader = loader.with_file(save.file.clone()),
+        },
+        _ => (),
+    }
     let mut game_state = loader.load();
 
     let mut game_manager = game_manager::GameManager::new(&mut game_state);
@@ -20,7 +27,8 @@ fn main() -> Result<(), String> {
     println!("#################################");
     println!("############## StS ##############");
 
-    match args.command {
+    match &args.command {
+        arguments::Actions::Save(_) => {}
         arguments::Actions::Play(card_index) => game_manager.play(card_index.index)?,
         arguments::Actions::Peek(game_object) => match game_object {
             arguments::GameObject::Player => println!("{:#?}", game_manager.state.player),

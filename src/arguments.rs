@@ -7,6 +7,19 @@ pub(crate) enum Actions {
     Peek(GameObject),
     EnterFight,
     EndTurn,
+    #[clap(subcommand)]
+    Save(Save),
+}
+
+#[derive(Subcommand, Debug)]
+pub(crate) enum Save {
+    Delete,
+    Load(SaveRef),
+}
+
+#[derive(Args, Debug)]
+pub(crate) struct SaveRef {
+    pub(crate) file: String,
 }
 
 #[derive(Subcommand, Debug)]
