@@ -1,6 +1,6 @@
 use crate::game_state;
 use std::fs;
-use std::{fs::File, os::unix::prelude::FileExt, path::Path};
+use std::{fs::File, path::Path};
 
 use std::io::prelude::*;
 
