@@ -1,7 +1,5 @@
 use crate::game_state;
-use std::fmt::format;
 use std::fs;
-use std::path::PathBuf;
 use std::{fs::File, path::Path};
 
 use std::io::prelude::*;
