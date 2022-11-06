@@ -29,6 +29,7 @@ pub(crate) enum Turn {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) enum Situation {
     Fighting { enemy: Enemy, turn: Turn },
+    Won,
 }
 
 impl GameState {

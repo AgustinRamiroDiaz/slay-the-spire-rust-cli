@@ -21,7 +21,7 @@ fn main() {
 
     match args.command {
         arguments::Actions::Attack => game_manager.attack().unwrap(),
-        arguments::Actions::Status => println!("{:#?}", game_manager),
+        arguments::Actions::Status => println!("{:#?}", game_manager.state),
     }
 
     loader.save(&game_manager.state)

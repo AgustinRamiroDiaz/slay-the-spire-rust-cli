@@ -1,4 +1,4 @@
-use crate::game_state;
+use crate::game_state::{self, Enemy};
 
 #[derive(Debug)]
 pub(crate) struct GameManager<'a> {
@@ -15,20 +15,21 @@ impl<'a> GameManager<'a> {
             game_state::Situation::Fighting { enemy, turn } => match turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
-                    attack_enemy(1, enemy);
+
                     switch_turn(turn);
                     play_enemy(enemy, &mut self.state.player);
                     switch_turn(turn);
                     Ok(())
                 }
             },
+            game_state::Situation::Won => Err("You won".to_string()),
         }
     }
 }
 
 fn attack_enemy(damage: usize, enemy: &mut game_state::Enemy) {
     println!("You attack the enemy for {damage} damage");
-    enemy_recieve_damage(damage, enemy)
+    enemy_recieve_damage(damage, enemy);
 }
 
 fn enemy_recieve_damage(damage: usize, enemy: &mut game_state::Enemy) {
@@ -66,4 +67,14 @@ fn play_enemy(enemy: &mut game_state::Enemy, player: &mut game_state::Player) {
         println!("{} has died", player.name);
         player.health = 0;
     }
+}
+
+// tests
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn _t() {}
 }
