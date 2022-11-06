@@ -26,7 +26,7 @@ impl<'a> GameManager<'a> {
                 self.state.situation = game_state::Situation::Fight(game_state::Fight {
                     armor: 0,
                     enemy: Enemy {
-                        health: 3,
+                        health: 20,
                         name: "The heart".to_string(),
                     },
                     turn: game_state::Turn::Player,

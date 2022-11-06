@@ -22,7 +22,7 @@ fn main() -> Result<(), String> {
 
     match args.command {
         arguments::Actions::Play(card_index) => game_manager.play(card_index.index)?,
-        arguments::Actions::Status(game_object) => match game_object {
+        arguments::Actions::Peek(game_object) => match game_object {
             arguments::GameObject::Player => println!("{:#?}", game_manager.state.player),
             arguments::GameObject::Enemy => println!("{:#?}", game_manager.peek_enemy()),
             arguments::GameObject::DrawPile => println!("{:#?}", game_manager.peek_draw_pile()?),

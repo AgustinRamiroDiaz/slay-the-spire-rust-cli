@@ -4,7 +4,7 @@ use clap::{Args, Parser, Subcommand};
 pub(crate) enum Actions {
     Play(Index),
     #[clap(subcommand)]
-    Status(GameObject),
+    Peek(GameObject),
     EnterFight,
     EndTurn,
 }
