@@ -1,4 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 use crate::game_state;
+use std::any::Any;
 use std::error::Error;
 use std::fs;
 use std::{fs::File, path::Path};
@@ -54,8 +57,9 @@ impl Loader {
             save_file_name,
         })
     }
-
-    pub(crate) fn load(&self) -> Result<game_state::GameState, Box<dyn Error>> {
+    pub(crate) fn load<'de>(
+        &self,
+    ) -> Result<game_state::GameState<dyn NewTrait<'de>>, Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_name = folder.join(&self.save_file_name);
 
@@ -72,7 +76,10 @@ impl Loader {
         Ok(serde_yaml::from_reader(file).expect("Could not read values."))
     }
 
-    pub(crate) fn save(&self, game_state: &game_state::GameState) -> Result<(), Box<dyn Error>> {
+    pub(crate) fn save<S>(
+        &self,
+        game_state: &game_state::GameState<S>,
+    ) -> Result<(), Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_path = folder.join(&self.save_file_name);
 
@@ -96,3 +103,5 @@ impl Loader {
         _ = fs::remove_file(&file_name);
     }
 }
+
+trait NewTrait<'de>: Deserialize<'de> {}

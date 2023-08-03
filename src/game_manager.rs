@@ -1,5 +1,5 @@
 use crate::deck;
-use crate::game_state::{self, Enemy};
+use crate::game_state::{self, Chill, Enemy, GameState};
 
 #[derive(Debug)]
 enum Event {
@@ -7,13 +7,13 @@ enum Event {
 }
 
 #[derive(Debug)]
-pub(crate) struct GameManager<'a> {
-    pub(crate) state: &'a mut game_state::GameState,
+pub(crate) struct GameManager {
+    pub(crate) state: game_state::GameStateEnum,
     event_store: Vec<Event>,
 }
 
-impl<'a> GameManager<'a> {
-    pub(crate) fn new(game_state: &'a mut game_state::GameState) -> Self {
+impl GameManager {
+    pub(crate) fn new(game_state: game_state::GameStateEnum) -> Self {
         GameManager {
             state: game_state,
             event_store: Vec::new(),
@@ -21,26 +21,19 @@ impl<'a> GameManager<'a> {
     }
 
     pub(crate) fn enter_fight(&mut self) -> Result<(), String> {
-        match self.state.situation {
-            game_state::Situation::Chill => {
-                self.state.situation = game_state::Situation::Fight(game_state::Fight {
-                    armor: 0,
-                    enemy: Enemy {
-                        health: 20,
-                        name: "The heart".to_string(),
-                    },
-                    turn: game_state::Turn::Player,
-                    fight_cards: deck::new(self.state.deck.clone()),
-                });
+        match self.state {
+            game_state::GameStateEnum::Chill(c) => {
+                self.state = game_state::GameStateEnum::Fight(c.enter_fight());
                 Ok(())
             }
+
             _ => Err("Not Chilling".to_string()),
         }
     }
 
     pub(crate) fn play(&mut self, card_index: usize) -> Result<(), String> {
         match &mut self.state.situation {
-            game_state::Situation::Fight(fight) => match fight.turn {
+            fight @ Fight => match fight.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
                     match fight.fight_cards.hand.get(card_index) {
@@ -69,7 +62,7 @@ impl<'a> GameManager<'a> {
                 }
             },
             game_state::Situation::Won => Err("You won".to_string()),
-            game_state::Situation::Chill => Err("You are chilling".to_string()),
+            Chill => Err("You are chilling".to_string()),
         }?;
 
         for event in &self.event_store {

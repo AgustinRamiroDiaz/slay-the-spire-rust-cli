@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::deck;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Enemy {
     pub(crate) health: usize,
@@ -34,10 +36,11 @@ pub(crate) struct Fight {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) enum Situation {
-    Fight(Fight),
+// TODO: rename
+pub(crate) enum GameStateEnum {
+    Fight(GameState<Fight>),
     Won,
-    Chill,
+    Chill(GameState<Chill>),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -53,13 +56,16 @@ pub(crate) struct Card {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub(crate) struct GameState {
-    pub(crate) situation: Situation,
+pub(crate) struct GameState<S> {
+    pub(crate) situation: S,
     pub(crate) player: Player,
     pub(crate) deck: Vec<Card>,
 }
 
-impl GameState {
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Chill {}
+
+impl GameState<Chill> {
     pub(crate) fn new() -> Self {
         let mut deck = Vec::new();
         for _ in 0..5 {
@@ -74,12 +80,32 @@ impl GameState {
         }
 
         Self {
+            situation: Chill {},
             player: Player {
                 health: 20,
                 name: "di peq".to_string(),
             },
             deck,
-            situation: Situation::Chill,
+        }
+    }
+
+    pub fn enter_fight(self) -> GameState<Fight> {
+        // TODO: remove hardcoded enemy
+        // TODO: armor modifiers???
+        GameState {
+            situation: Fight {
+                armor: 0,
+                enemy: Enemy {
+                    health: 20,
+                    name: "The heart".to_string(),
+                },
+                turn: Turn::Player,
+                fight_cards: deck::new(self.deck.clone()),
+            },
+            player: self.player,
+            deck: self.deck,
         }
     }
 }
+
+impl GameState<Fight> {}
