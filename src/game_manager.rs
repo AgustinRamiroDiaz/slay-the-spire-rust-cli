@@ -168,7 +168,7 @@ fn switch_turn(turn: &mut game_state::Turn) {
     };
 }
 
-fn play_enemy(enemy: &mut game_state::Enemy, player: &mut game_state::Player) {
+fn play_enemy(_enemy: &mut game_state::Enemy, player: &mut game_state::Player) {
     println!("The heart beats faster.");
     let damage = 1;
     if player.health > damage {

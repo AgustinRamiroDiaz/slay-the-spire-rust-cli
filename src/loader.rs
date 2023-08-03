@@ -1,4 +1,5 @@
 use crate::game_state;
+use std::error::Error;
 use std::fs;
 use std::{fs::File, path::Path};
 
@@ -14,30 +15,30 @@ pub(crate) struct Loader {
 }
 
 impl Loader {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new() -> Result<Self, Box<dyn Error>> {
         let folder = Path::new(DEFAULT_FOLDER);
 
         let save_file_name;
         let metadata_path = folder.join(METADATA_FILE);
         if !metadata_path.exists() {
-            fs::create_dir_all(folder).unwrap();
+            fs::create_dir_all(folder)?;
+            File::create(&metadata_path)?;
             let mut metadata_file = File::options()
                 .write(true)
                 .truncate(true)
-                .open(&metadata_path)
-                .unwrap();
-            write!(metadata_file, "{}", DEFAULT_FILE.to_string()).unwrap();
+                .open(&metadata_path)?;
+            write!(metadata_file, "{}", DEFAULT_FILE.to_string())?;
         }
 
-        save_file_name = fs::read_to_string(&metadata_path).unwrap();
+        save_file_name = fs::read_to_string(&metadata_path)?;
 
-        Self {
+        Ok(Self {
             folder_name: DEFAULT_FOLDER.to_string(),
             save_file_name,
-        }
+        })
     }
 
-    pub(crate) fn with_file(self, save_name: String) -> Self {
+    pub(crate) fn with_file(self, save_name: String) -> Result<Self, Box<dyn Error>> {
         let save_file_name = format!("{}.yaml", save_name);
         let folder = Path::new(DEFAULT_FOLDER);
         let metadata_path = folder.join(METADATA_FILE);
@@ -45,56 +46,53 @@ impl Loader {
         let mut output = File::options()
             .write(true)
             .truncate(true)
-            .open(&metadata_path)
-            .unwrap();
-        write!(output, "{}", save_file_name).unwrap();
+            .open(&metadata_path)?;
+        write!(output, "{}", save_file_name)?;
 
-        Self {
+        Ok(Self {
             folder_name: self.folder_name,
             save_file_name,
-        }
+        })
     }
 
-    pub(crate) fn load(&self) -> game_state::GameState {
+    pub(crate) fn load(&self) -> Result<game_state::GameState, Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_name = folder.join(&self.save_file_name);
 
         if !file_name.exists() {
-            fs::create_dir_all(Path::new(&self.folder_name)).unwrap();
-            File::create(&file_name).unwrap();
+            fs::create_dir_all(Path::new(&self.folder_name))?;
+            File::create(&file_name)?;
         }
 
-        if fs::read_to_string(&file_name).unwrap().is_empty() {
-            return game_state::GameState::new();
+        if fs::read_to_string(&file_name)?.is_empty() {
+            return Ok(game_state::GameState::new());
         }
 
-        let file = File::open(&file_name).unwrap();
-        serde_yaml::from_reader(file).expect("Could not read values.")
+        let file = File::open(&file_name)?;
+        Ok(serde_yaml::from_reader(file).expect("Could not read values."))
     }
 
-    pub(crate) fn save(&self, game_state: &game_state::GameState) {
+    pub(crate) fn save(&self, game_state: &game_state::GameState) -> Result<(), Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_path = folder.join(&self.save_file_name);
 
         if !file_path.exists() {
-            fs::create_dir_all(folder).unwrap();
-            File::create(&file_path).unwrap();
+            fs::create_dir_all(folder)?;
+            File::create(&file_path)?;
         }
 
         let file = File::options()
             .write(true)
             .truncate(true)
-            .open(&file_path)
-            .unwrap();
-        serde_yaml::to_writer(file, game_state).unwrap();
+            .open(&file_path)?;
+        serde_yaml::to_writer(file, game_state)?;
+        Ok(())
     }
 
     pub(crate) fn delete(&self) {
         let folder = Path::new(&self.folder_name);
         let file_name = folder.join(&self.save_file_name);
 
-        if file_name.exists() {
-            fs::remove_file(&file_name).unwrap();
-        }
+        _ = fs::remove_file(&file_name);
     }
 }

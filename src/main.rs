@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use clap::Parser;
 
 mod arguments;
@@ -6,18 +8,18 @@ mod game_manager;
 mod game_state;
 mod loader;
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = arguments::Main::parse();
 
-    let mut loader = loader::Loader::new();
+    let mut loader = loader::Loader::new()?;
     match &args.command {
         arguments::Actions::Save(save_command) => match save_command {
             arguments::Save::Delete => loader.delete(),
-            arguments::Save::Load(save) => loader = loader.with_file(save.file.clone()),
+            arguments::Save::Load(save) => loader = loader.with_file(save.file.clone())?,
         },
         _ => (),
     }
-    let mut game_state = loader.load();
+    let mut game_state = loader.load()?;
 
     let mut game_manager = game_manager::GameManager::new(&mut game_state);
 
@@ -47,6 +49,6 @@ fn main() -> Result<(), String> {
     println!("#################################");
     println!("#################################");
     println!("#################################");
-    loader.save(&game_manager.state);
+    loader.save(&game_manager.state)?;
     Ok(())
 }
