@@ -22,6 +22,7 @@ impl GameManager {
         }
     }
 
+    // TODO: this consumes the data
     pub(crate) fn enter_fight(mut self) -> Result<(), String> {
         match self.state {
             game_state::GameStateEnum::Chill(c) => {
