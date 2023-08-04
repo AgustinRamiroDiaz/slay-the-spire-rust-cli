@@ -57,9 +57,7 @@ impl Loader {
             save_file_name,
         })
     }
-    pub(crate) fn load<'de>(
-        &self,
-    ) -> Result<game_state::GameState<dyn NewTrait<'de>>, Box<dyn Error>> {
+    pub(crate) fn load(&self) -> Result<game_state::GameStateEnum, Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_name = folder.join(&self.save_file_name);
 
@@ -69,16 +67,18 @@ impl Loader {
         }
 
         if fs::read_to_string(&file_name)?.is_empty() {
-            return Ok(game_state::GameState::new());
+            return Ok(game_state::GameStateEnum::Chill(game_state::GameState::<
+                game_state::Chill,
+            >::new()));
         }
 
         let file = File::open(&file_name)?;
         Ok(serde_yaml::from_reader(file).expect("Could not read values."))
     }
 
-    pub(crate) fn save<S>(
+    pub(crate) fn save(
         &self,
-        game_state: &game_state::GameState<S>,
+        game_state: &game_state::GameStateEnum,
     ) -> Result<(), Box<dyn Error>> {
         let folder = Path::new(&self.folder_name);
         let file_path = folder.join(&self.save_file_name);

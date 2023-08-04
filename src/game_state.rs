@@ -39,7 +39,7 @@ pub(crate) struct Fight {
 // TODO: rename
 pub(crate) enum GameStateEnum {
     Fight(GameState<Fight>),
-    Won,
+    Won(GameState<Won>),
     Chill(GameState<Chill>),
 }
 
@@ -64,6 +64,9 @@ pub(crate) struct GameState<S> {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Chill {}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Won {}
 
 impl GameState<Chill> {
     pub(crate) fn new() -> Self {
@@ -108,4 +111,30 @@ impl GameState<Chill> {
     }
 }
 
-impl GameState<Fight> {}
+impl GameState<Fight> {
+    pub fn win(self) -> GameState<Won> {
+        GameState {
+            situation: Won {},
+            player: self.player,
+            deck: self.deck,
+        }
+    }
+}
+
+impl<S> GameState<S> {
+    pub fn get_player(&self) -> &Player {
+        &self.player
+    }
+}
+
+impl GameStateEnum {
+    // TODO: is there a way to share this functionality?
+    // TODO: also, is there a way to not duplicate it?
+    pub fn get_player(&self) -> &Player {
+        match self {
+            GameStateEnum::Fight(x) => x.get_player(),
+            GameStateEnum::Won(x) => x.get_player(),
+            GameStateEnum::Chill(x) => x.get_player(),
+        }
+    }
+}

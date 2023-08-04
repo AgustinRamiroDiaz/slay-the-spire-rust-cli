@@ -32,67 +32,74 @@ impl GameManager {
     }
 
     pub(crate) fn play(&mut self, card_index: usize) -> Result<(), String> {
-        match &mut self.state.situation {
-            fight @ Fight => match fight.turn {
+        match self.state {
+            game_state::GameStateEnum::Fight(fight) => match fight.situation.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
-                    match fight.fight_cards.hand.get(card_index) {
+                    match fight.situation.fight_cards.hand.get(card_index) {
                         Some(card) => {
                             match &card.card_content {
-                                game_state::CardContent::Attack(damage) => {
-                                    attack_enemy(*damage, &mut fight.enemy, &mut self.event_store)
-                                }
+                                game_state::CardContent::Attack(damage) => attack_enemy(
+                                    *damage,
+                                    &mut fight.situation.enemy,
+                                    &mut self.event_store,
+                                ),
                                 game_state::CardContent::Defend(armor) => {
-                                    fight.armor += armor;
+                                    fight.situation.armor += armor;
                                     println!(
                                         "You've gained {} armor, you now have {}",
-                                        armor, fight.armor
+                                        armor, fight.situation.armor
                                     );
                                 }
                             }
                             fight
+                                .situation
                                 .fight_cards
                                 .discard_pile
-                                .push(fight.fight_cards.hand.remove(card_index));
+                                .push(fight.situation.fight_cards.hand.remove(card_index));
                             Ok(())
                         }
                         None => Err("No card at that index".to_string()),
                     }?;
+                    for event in &self.event_store {
+                        match event {
+                            Event::EnemyDied => {
+                                println!("You won");
+                                self.state = game_state::GameStateEnum::Won(fight.win());
+                            }
+                        }
+                    }
                     Ok(())
                 }
             },
-            game_state::Situation::Won => Err("You won".to_string()),
-            Chill => Err("You are chilling".to_string()),
+            game_state::GameStateEnum::Won(_) => Err("You won".to_string()),
+            game_state::GameStateEnum::Chill(_) => Err("You are chilling".to_string()),
         }?;
 
-        for event in &self.event_store {
-            match event {
-                Event::EnemyDied => {
-                    println!("You won");
-                    self.state.situation = game_state::Situation::Won;
-                }
-            }
-        }
         Ok(())
     }
 
     pub(crate) fn end_turn(&mut self) -> Result<(), String> {
-        match &mut self.state.situation {
-            game_state::Situation::Fight(fight) => match fight.turn {
+        match &mut self.state {
+            game_state::GameStateEnum::Fight(game_state::GameState::<game_state::Fight> {
+                situation,
+                player,
+                deck,
+            }) => match situation.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
                     deck::discard_hand(
-                        &mut fight.fight_cards.hand,
-                        &mut fight.fight_cards.discard_pile,
+                        &mut situation.fight_cards.hand,
+                        &mut situation.fight_cards.discard_pile,
                     );
-                    switch_turn(&mut fight.turn);
-                    play_enemy(&mut fight.enemy, &mut self.state.player);
-                    switch_turn(&mut fight.turn);
+                    switch_turn(&mut situation.turn);
+                    play_enemy(&mut situation.enemy, player);
+                    switch_turn(&mut situation.turn);
                     deck::draw_n(
                         5,
-                        &mut fight.fight_cards.draw_pile,
-                        &mut fight.fight_cards.hand,
-                        &mut fight.fight_cards.discard_pile,
+                        &mut situation.fight_cards.draw_pile,
+                        &mut situation.fight_cards.hand,
+                        &mut situation.fight_cards.discard_pile,
                     );
                     Ok(())
                 }
@@ -102,29 +109,31 @@ impl GameManager {
     }
 
     pub(crate) fn peek_hand(&self) -> Result<Vec<game_state::Card>, String> {
-        match &self.state.situation {
-            game_state::Situation::Fight(fight) => Ok(fight.fight_cards.hand.clone()),
+        match &self.state {
+            game_state::GameStateEnum::Fight(fight) => Ok(fight.situation.fight_cards.hand.clone()),
             _ => Err("Not in a fight".to_string()),
         }
     }
 
     pub(crate) fn peek_draw_pile(&self) -> Result<&Vec<game_state::Card>, String> {
-        match &self.state.situation {
-            game_state::Situation::Fight(fight) => Ok(&fight.fight_cards.draw_pile),
+        match &self.state {
+            game_state::GameStateEnum::Fight(fight) => Ok(&fight.situation.fight_cards.draw_pile),
             _ => Err("Not in a fight".to_string()),
         }
     }
 
     pub(crate) fn peek_discard_pile(&self) -> Result<&Vec<game_state::Card>, String> {
-        match &self.state.situation {
-            game_state::Situation::Fight(fight) => Ok(&fight.fight_cards.discard_pile),
+        match &self.state {
+            game_state::GameStateEnum::Fight(fight) => {
+                Ok(&fight.situation.fight_cards.discard_pile)
+            }
             _ => Err("Not in a fight".to_string()),
         }
     }
 
     pub(crate) fn peek_enemy(&self) -> Result<&Enemy, String> {
-        match &self.state.situation {
-            game_state::Situation::Fight(fight) => Ok(&fight.enemy),
+        match &self.state {
+            game_state::GameStateEnum::Fight(fight) => Ok(&fight.situation.enemy),
             _ => Err("Not in a fight".to_string()),
         }
     }

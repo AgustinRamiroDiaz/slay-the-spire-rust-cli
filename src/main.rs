@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let mut game_state = loader.load()?;
 
-    let mut game_manager = game_manager::GameManager::new(&mut game_state);
+    let mut game_manager = game_manager::GameManager::new(game_state);
 
     println!("#################################");
     println!("#################################");
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         arguments::Actions::Save(_) => {}
         arguments::Actions::Play(card_index) => game_manager.play(card_index.index)?,
         arguments::Actions::Peek(game_object) => match game_object {
-            arguments::GameObject::Player => println!("{:#?}", game_manager.state.player),
+            arguments::GameObject::Player => println!("{:#?}", game_manager.state.get_player()),
             arguments::GameObject::Enemy => println!("{:#?}", game_manager.peek_enemy()),
             arguments::GameObject::DrawPile => println!("{:#?}", game_manager.peek_draw_pile()?),
             arguments::GameObject::Hand => println!("{:#?}", game_manager.peek_hand()),
