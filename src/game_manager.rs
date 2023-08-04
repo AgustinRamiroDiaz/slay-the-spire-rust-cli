@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use crate::deck;
 use crate::game_state::{self, Chill, Enemy, GameState};
 
@@ -20,7 +22,7 @@ impl GameManager {
         }
     }
 
-    pub(crate) fn enter_fight(&mut self) -> Result<(), String> {
+    pub(crate) fn enter_fight(mut self) -> Result<(), String> {
         match self.state {
             game_state::GameStateEnum::Chill(c) => {
                 self.state = game_state::GameStateEnum::Fight(c.enter_fight());
@@ -31,41 +33,41 @@ impl GameManager {
         }
     }
 
-    pub(crate) fn play(&mut self, card_index: usize) -> Result<(), String> {
+    pub(crate) fn play(mut self, card_index: usize) -> Result<(), String> {
         match self.state {
-            game_state::GameStateEnum::Fight(fight) => match fight.situation.turn {
+            game_state::GameStateEnum::Fight(mut gs) => match gs.situation.turn {
                 game_state::Turn::Enemy => Err("Not your turn".to_string()),
                 game_state::Turn::Player => {
-                    match fight.situation.fight_cards.hand.get(card_index) {
+                    match gs.situation.fight_cards.hand.get(card_index) {
                         Some(card) => {
                             match &card.card_content {
                                 game_state::CardContent::Attack(damage) => attack_enemy(
                                     *damage,
-                                    &mut fight.situation.enemy,
+                                    &mut gs.situation.enemy,
                                     &mut self.event_store,
                                 ),
                                 game_state::CardContent::Defend(armor) => {
-                                    fight.situation.armor += armor;
+                                    gs.situation.armor += armor;
                                     println!(
                                         "You've gained {} armor, you now have {}",
-                                        armor, fight.situation.armor
+                                        armor, gs.situation.armor
                                     );
                                 }
                             }
-                            fight
-                                .situation
+                            gs.situation
                                 .fight_cards
                                 .discard_pile
-                                .push(fight.situation.fight_cards.hand.remove(card_index));
+                                .push(gs.situation.fight_cards.hand.remove(card_index));
                             Ok(())
                         }
                         None => Err("No card at that index".to_string()),
                     }?;
-                    for event in &self.event_store {
+                    for event in self.event_store {
                         match event {
                             Event::EnemyDied => {
                                 println!("You won");
-                                self.state = game_state::GameStateEnum::Won(fight.win());
+                                self.state = game_state::GameStateEnum::Won(gs.win());
+                                return Ok(()); // TODO: should be able to handle more events, but this one only once
                             }
                         }
                     }
